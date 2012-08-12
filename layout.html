@@ -1,0 +1,79 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.6.0/build/cssfonts/cssfonts-min.css">
+<script src="http://yui.yahooapis.com/3.6.0/build/yui/yui-min.js"></script>
+<script type="text/javascript">
+YUI().use('node','event-hover','anim',function(Y) {
+Y.one('#query').on('focus',function() {
+var boxAnim = new Y.Anim({
+node:'#query',
+to : {
+width:400
+},
+easing:'elasticOut'
+});
+boxAnim.run();
+});
+Y.one('#query').on('hover',function over() {
+//alert('otha');
+//Y.one('#query').addClass('one').removeClass('two');
+var boxAnim = new Y.Anim({
+node:'#query',
+to : {
+width:400
+},
+easing:'elasticBoth'
+});
+boxAnim.run();
+Y.one("#query").focus();
+});
+Y.one("#query").on("blur",function() {
+//alert('otha');
+//Y.one('#query').addClass('two').removeClass('one');
+var boxAnim = new Y.Anim({
+node:'#query',
+to : {
+width:200
+},
+easing:'elasticBoth'
+});
+boxAnim.run();
+});
+});
+</script>
+<style type="text/css">
+body{overflow:hidden;}
+#sCont{position:absolute;width:100%;}
+#query{position:absolute;right:20%;border:1px solid gray;width:200px;height:35px;border:none;border-bottom:1px solid gray;}
+#query:focus{width:400px;border:none;border-bottom:1px solid gray;}
+#search{cursor:pointer;position:absolute;right:17.5%;}
+#naam{position:absolute;left:20%;top:2%;font-size:189%;}
+#top{background:red;position:absolute;top:0%;}
+#container{position:absolute;left:28%;top:25%;width:640px;height:360px;border:1px solid gray;background:url('placeholder.jpg');}
+#prev{cursor:pointer;position:absolute;top:50%;left:4%;}
+#next{cursor:pointer;position:absolute;top:50%;right:4%;}
+#foot{position:absolute;bottom:0%;width:100%;}
+#copy{position:absolute;right:2%;bottom:1%;}
+#quote{position:absolute;left:2%;bottom:1%;}
+</style>
+</head>
+<body>
+<div id="head">
+<center><strong id="naam">FlipTube</strong></center>
+<div id="sCont">
+<input type="text" placeholder="Enter keywords" id="query"/><div id="search"><img src="toolbar_find.png" /></div>
+</div>
+</div>
+<br/><br/><br/>
+<hr>
+<div id="prev"><img src="glyphicons_171_fast_backward.png"/></div>
+<div id="container"></div>
+<div id="next"><img src="glyphicons_177_fast_forward.png"/></div>
+<div id="foot">
+<hr>
+<br/>
+<span id="quote">Random Footer Quote to be filled</span><span id="copy">Apocalypse 2012</span>
+<br/>
+</div>
+</body>
+</html>

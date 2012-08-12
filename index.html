@@ -1,0 +1,267 @@
+<html>
+<head>
+
+ <style>
+            /* Avoid resource latency for these, since they hide unenhanced content */
+            .yui3-js-enabled .yui3-scrollview-loading {
+                visibility:hidden;
+            }
+
+            #additional-content {
+                display:none;
+            }
+        </style>
+
+        <link rel="stylesheet" href="http://yui.yahooapis.com/3.6.0/build/cssreset/cssreset-min.css" type="text/css" charset="utf-8">
+
+        <link rel="stylesheet" href="http://yuilibrary.com/yui/docs/assets/scrollview/horizontal.css" type="text/css" charset="utf-8">
+
+
+
+<link rel="stylesheet" href="http://yui.yahooapis.com/3.6.0/build/cssgrids/cssgrids.css" type="text/css">
+<script src="http://yui.yahooapis.com/3.6.0/build/yui/yui-min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" >
+</script>
+<script type="text/javascript">
+YUI().use('node','event-hover','anim',function(Y) {
+Y.one('#search').on('focus',function() {
+var boxAnim = new Y.Anim({
+node:'#search',
+to : {
+width:400
+},
+easing:'elasticOut'
+});
+boxAnim.run();
+});
+Y.one('#search').on('hover',function over() {
+var boxAnim = new Y.Anim({
+node:'#search',
+to : {
+width:400
+},
+easing:'elasticBoth'
+});
+boxAnim.run();
+Y.one("#search").focus();
+});
+Y.one("#search").on("blur",function() {
+var boxAnim = new Y.Anim({
+node:'#search',
+to : {
+width:200
+},
+easing:'elasticBoth'
+});
+boxAnim.run();
+});
+});
+</script>
+<style type="text/css">
+body{overflow:hidden;}
+#sCont{position:absolute;width:100%;}
+#search{position:absolute;right:20%;border:1px solid gray;width:200px;height:35px;border:none;border-bottom:1px solid gray;}
+#search:focus{width:400px;border:none;border-bottom:1px solid gray;}
+#query{cursor:pointer;position:absolute;right:17.5%;}
+#naam{position:absolute;left:20%;top:2%;font-size:189%;}
+#top{background:red;position:absolute;top:0%;}
+#container{position:absolute;left:28%;top:25%;width:640px;height:360px;border:1px solid gray;background:url('placeholder.jpg');}
+#scrollview-prev{cursor:pointer;position:absolute;top:50%;left:4%;}
+#scrollview-next{cursor:pointer;position:absolute;top:50%;right:4%;}
+#foot{position:absolute;bottom:0%;width:100%;}
+#copy{position:absolute;right:2%;bottom:1%;}
+#quote{position:absolute;left:2%;bottom:1%;}
+</style>
+<script>
+
+YUI().use('node','event-move',function(Y) {
+var diff;
+var minimum=-50;
+Y.one('#results').on('gesturemovestart', function(e) {
+//alert(e.pageY);
+//Y.one('#test').setHTML(e.pageY);
+diff=e.pageX;
+//this.once("selectstart",function(e){e.preventDefault();});
+});
+Y.one('#results').on('gesturemoveend', function(e) {
+diff=e.pageX-diff;
+if(diff<minimum)
+	next();
+else if(diff>Math.abs(minimum))
+	previous();
+});
+});
+</script>
+<script type="text/javascript" charset="utf-8">
+YUI().use('scrollview', 'scrollview-paginator', function(Y) {
+
+    var scrollView = new Y.ScrollView({
+        id: "scrollview",
+        srcNode : '#scrollview-content',
+        width : '640px',
+        flick: {
+            minDistance:10,
+            minVelocity:0.3,
+            axis: "x"
+        }
+    });
+
+    scrollView.plug(Y.Plugin.ScrollViewPaginator, {
+        selector: 'li'
+    });
+
+    scrollView.render();
+
+    var content = scrollView.get("contentBox");
+
+    content.delegate("click", function(e) {
+        // For mouse based devices, we need to make sure the click isn't fired
+        // at the end of a drag/flick. We use 2 as an arbitrary threshold.
+        if (Math.abs(scrollView.lastScrolledAmt) < 2) {
+            //alert(e.currentTarget.getAttribute("alt"));
+        }
+    }, "embed");
+
+    // Prevent default image drag behavior
+    content.delegate("mousedown", function(e) {
+        //e.preventDefault();
+    }, "embed");
+
+	
+   Y.one('#scrollview-prev').on('click', function(e){previous();});
+   Y.one('#scrollview-next').on('click', function(e){next();});
+   
+   
+
+});
+</script>
+<script type="text/javascript">
+var urls = new Array();
+var player = new Array();
+var current_loaded = -1;
+var total_loaded;
+
+
+function translate()
+{
+    $('#scrollview-content').css('-webkit-transition', 'all 1s ease-out');
+	$('#scrollview-content').css('-webkit-transform', 'translateX(-'+current_loaded*640+'px)');
+
+}
+
+function search()
+{
+$('#results').html("");
+var query = $('#search').val();
+//var query = 'select files.file.content from youtube.search where query="louis ck" and files.file.type="application/x-shockwave-flash" limit 10';
+//var url = "http://query.yahooapis.com/v1/public/yql?q="+encodeURIComponent(query)+"&format=json";
+//FIXME
+var url = "http://query.yahooapis.com/v1/public/yql?q=select%20files.file.content%20from%20youtube.search%20where%20query%3D%22"+encodeURIComponent(query)+"%22%20and%20files.file.type%3D%22application%2Fx-shockwave-flash%22%20limit%2010&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
+	$.ajax({
+		url:url}).
+		done(function(data){
+			$.each(data.query.results.video, function(index, url){
+				console.log(index + " " + url);
+				urls[index] = url.files.file;
+		});
+		console.log(urls);
+		createDivs(urls);
+		current_loaded=0;
+		player=new Array();
+		checkLoaded(current_loaded);
+		total_loaded=10;
+	});
+}
+function createDivs(urls)
+{
+	$.each(urls,function(index,url){
+		$('#results').append('<li width="640px" height="360px" class="playerdiv" id="player_'+index+'"></li>');
+	});
+}
+function checkLoaded(index)
+{
+	if($('#player_'+index).html() === "")
+	{
+			embedPlayer(urls[index], index);
+	}
+	else
+	{
+		play(index);
+	}
+}
+function embedPlayer(url, index)
+{
+	$('#player_'+index).append('<embed style="z-index:0;" class="playerid" width="640px" height="360px" allowfullscreen="false" allowscriptaccess="always" quality="high" bgcolor="#000000" controls=0 name="playerid" src="'+url+'&enablejsapi=1" type="application/x-shockwave-flash">');
+}
+//YT JS API functions
+function onYouTubePlayerReady(playerId) {
+	//alert("player ready");
+	player[current_loaded]=$("#player_"+current_loaded+" > .playerid")[0];
+	play(current_loaded);
+}
+function pause(index)
+{
+	player[index].pauseVideo();
+}
+function play(index)
+{
+	player[index].playVideo();
+}
+function next()
+{
+	if(current_loaded<total_loaded)
+	{
+	pause(current_loaded);
+	current_loaded+=1;
+	checkLoaded(current_loaded);
+
+	translate();
+	}
+}
+function previous()
+{
+if(current_loaded>0)
+{
+pause(current_loaded);
+current_loaded-=1;
+checkLoaded(current_loaded);
+
+translate();
+}
+}
+</script>
+</head>
+<body>
+
+<div id="head">
+<center><strong id="naam">FlipTube</strong></center>
+<div id="sCont">
+<input type="text" placeholder="Enter keywords" id="search"/><div id="query" ><a href="javascript:search();"><img src="toolbar_find.png" /></a></div>
+</div>
+</div>
+<br/><br/><br/>
+<hr>
+<div class="yui3-g">
+<div class="yui3-u-1-4">
+</div>
+<div class="yui3-u-1-2" style="margin-top:5%">
+<center>
+		<div id="scrollview-content" class="yui3-scrollview-loading">
+			<ul id="results">
+			</ul>	
+		</div>
+		</center>
+		<div id="scrollview-pager">
+<div id="scrollview-prev"><img src="glyphicons_171_fast_backward.png"/></div>
+<div id="scrollview-next"><img src="glyphicons_177_fast_forward.png"/></div>
+</div>
+</div>
+
+</div>
+<div id="foot">
+<hr>
+<br/>
+<span id="quote">Random Footer Quote to be filled</span><span id="copy">Apocalypse 2012</span>
+<br/>
+</div>
+</html>
